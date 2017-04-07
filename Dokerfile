@@ -1,0 +1,17 @@
+FROM pipelinedb/pipelinedb:0.9.7 
+ENV PATH=$PATH:/usr/lib/pipelinedb/bin/
+RUN apt-get update \
+      && apt-get install -y --no-install-recommends \
+           wget unzip make libxml2-dev libgeos-dev libproj-dev libgdal-dev xsltproc autoconf automake libtool libcunit1-dev ca-certificates \
+      && rm -rf /var/lib/apt/lists/*
+RUN cd /tmp && \
+    wget https://codeload.github.com/pipelinedb/postgis/zip/pipeline-0.9.0 && \
+    unzip pipeline-0.9.0 && \
+    cd postgis-pipeline-0.9.0 && \
+    ./autogen.sh && \
+    ./configure && \
+    make && \
+    make install && \
+    cd /tmp && \
+    rm -dr *
+
