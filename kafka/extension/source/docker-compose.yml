@@ -1,0 +1,108 @@
+# N.B. assumes you have set the following environment variables in the
+# environment of the host where you are running docker-compose:
+#
+# * KAFKA_ADVERTISED_HOST_NAME: set to the IP address of the Docker host
+#   (see below).
+#
+# * KAFKA_LOG_CLEANUP_POLICY: "delete" or "compact" (see log.cleanup.policy in
+#   the Kafka docs)
+#
+# * KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true" or "false" (see
+#   auto.create.topics.enable in the Kafka docs)
+#
+# You can determine the IP address of the Docker host with a command like:
+#
+#   docker run --rm debian:latest ip route | awk '/^default via / { print $3 }'
+
+zookeeper:
+  image: confluent/zookeeper:3.4.6-cp1
+  hostname: zookeeper
+  ports:
+    - '2181:2181'
+kafka:
+  image: confluent/kafka:0.9.0.0-cp1
+  hostname: kafka
+  links:
+    - zookeeper
+  environment:
+    KAFKA_LOG_CLEANUP_POLICY:
+    KAFKA_ADVERTISED_HOST_NAME:
+    KAFKA_AUTO_CREATE_TOPICS_ENABLE:
+  ports:
+    - '9092:9092'
+schema-registry:
+  image: confluent/schema-registry:2.0.1
+  hostname: schema-registry
+  links:
+    - zookeeper
+    - kafka
+  ports:
+    - '48081:8081'
+  environment:
+    SCHEMA_REGISTRY_AVRO_COMPATIBILITY_LEVEL: none
+postgres-94:
+  build: ./tmp
+  dockerfile: Dockerfile.postgres94
+  hostname: postgres
+  ports:
+    - '54094:5432'
+postgres:
+  build: ./tmp
+  dockerfile: Dockerfile.postgres
+  hostname: postgres
+  ports:
+    - '54095:5432'
+bottledwater:
+  build: ./tmp
+  dockerfile: Dockerfile.client
+  hostname: bottledwater
+  entrypoint:
+    - /usr/local/bin/bottledwater-docker-wrapper.sh
+    - --topic-config=message.timeout.ms=2000
+  environment:
+    BOTTLED_WATER_ALLOW_UNKEYED: 'true'
+    BOTTLED_WATER_ON_ERROR:
+    BOTTLED_WATER_SKIP_SNAPSHOT:
+    BOTTLED_WATER_TOPIC_PREFIX:
+    VALGRIND_ENABLED:
+    VALGRIND_OPTS:
+bottledwater-json:
+  extends: {service: bottledwater}
+  links:
+    - postgres
+    - postgres-94
+    - kafka
+  environment:
+    BOTTLED_WATER_OUTPUT_FORMAT: json
+bottledwater-avro:
+  extends: {service: bottledwater}
+  links:
+    - postgres
+    - postgres-94
+    - kafka
+    - schema-registry
+  environment:
+    BOTTLED_WATER_OUTPUT_FORMAT: avro
+psql:
+  image: postgres:9.5
+  links:
+    - postgres
+  entrypoint: ['psql', '-h', 'postgres', '-U', 'postgres']
+kafka-console-consumer:
+  image: confluent/tools:0.9.0.0-cp1
+  links:
+    - zookeeper
+    - kafka
+  entrypoint: ['kafka-console-consumer', '--zookeeper', 'zookeeper:2181']
+kafka-avro-console-consumer:
+  image: confluent/tools:0.9.0.0-cp1
+  links:
+    - zookeeper
+    - kafka
+    - schema-registry
+  entrypoint: ['kafka-avro-console-consumer', '--zookeeper', 'zookeeper:2181', '--property', 'schema.registry.url=http://schema-registry:8081']
+kafka-tools:
+  image: confluent/tools:0.9.0.0-cp1
+  links:
+    - zookeeper
+    - kafka
