@@ -1,10 +1,10 @@
-###Bottledwater - Streaming data from postgresql to kafka
+### Bottledwater - Streaming data from postgresql to kafka
 
 BottledWater is used to translate WAL(Write Ahead Log) to Avro data format, and streaming the data to kafka 
 clients in time.
 Click [here](https://github.com/confluentinc/bottledwater-pg) to get more about bottledwater.
 
-####Build images
+#### Build images
 
 Images should be built before running containers:
 
@@ -12,7 +12,7 @@ Images should be built before running containers:
     
   - [Postgres](postgres/README.MD)
 
-####Run containers
+#### Run containers
 
 - Run kafka:
 
