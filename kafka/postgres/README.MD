@@ -4,7 +4,7 @@
 
   Used to pass WAL(write ahead log) to bottledwater.
   
-  Click [here]() to get the details of generating extension files.
+  Click [here](../extension/README.MD) to get the details of generating extension files.
 
 - Application && extensions version details below:
 
