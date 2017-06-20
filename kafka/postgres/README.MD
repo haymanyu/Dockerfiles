@@ -15,7 +15,7 @@
   K-means      | 1.1.0
   Bottledwater | 
 
-###How to use
+### How to use
 
 - Build Images
 
@@ -29,7 +29,7 @@
   docker-compose up -d postgres
   ```
 
-####Note
+#### Note
 
   Before using bottledwater, extension should be created on the database you want to steaming to kafka.
 
