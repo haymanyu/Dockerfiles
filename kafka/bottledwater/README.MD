@@ -3,7 +3,7 @@ Bottledwater
 
 The image is built based on postgres with version 9.6.1, and get then extension source on [Confluentinc-BottledWater](https://github.com/confluentinc/bottledwater-pg#running-in-docker).
 
-Click [here]() to get the details of generating extension files.
+Click [here](../extension/README.MD) to get the details of generating extension files.
 
 - Settings
 
