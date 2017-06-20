@@ -8,9 +8,9 @@ Click [here](https://github.com/confluentinc/bottledwater-pg) to get more about 
 
 Images should be built before running containers:
 
-  - [BottledWater](bottledwater/README.MD)
+  - [BottledWater](bottledwater/)
     
-  - [Postgres](postgres/README.MD)
+  - [Postgres](postgres/)
 
 #### Run containers
 
