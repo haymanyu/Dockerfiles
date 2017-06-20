@@ -1,0 +1,119 @@
+#!/bin/bash
+set -e
+ 
+#
+# Starts / stops the pgagent daemon
+#
+# /etc/init.d/pgagent
+ 
+### BEGIN INIT INFO
+# Provides:         pgagent
+# Required-Start:   $local_fs $remote_fs $network $time postgresql
+# Required-Stop:    $local_fs $remote_fs $network $time
+# Should-Start:     $syslog
+# Should-Stop:      $syslog
+# Default-Start:    2 3 4 5
+# Default-Stop:     0 1 6
+# Short-Description:    pgagent Postgresql Job Service
+### END INIT INFO
+ 
+# For SELinux we need to use 'runuser' not 'su'
+if [ -x /sbin/runuser ]
+then
+    SU=runuser
+else
+    SU=su
+fi
+ 
+DBNAME=${DBNAME-postgres}
+DBUSER=${DBUSER-postgres}
+DBHOST=${DBHOST-localhost}
+DBPORT=${DBPORT-5432}
+LOGFILE=${LOGFILE-/var/log/pgagent.log}
+pidfile="/var/run/pgagent.pid"
+ 
+RETVAL=0
+NAME="pgagent"
+PROG="/usr/bin/pgagent"
+ 
+# Override defaults from /etc/default/pgagent file,if file is present:
+[ -f /etc/default/pgagent ] && . /etc/default/pgagent
+ 
+echo_success() {
+    echo "Success."
+}
+echo_failure() {
+    echo "Failure."
+}
+ 
+start() {
+    # Make sure that pgagent is not already running:
+    if [ ! -z `pidof pgagent` ]
+    then
+        echo "${NAME} is already running"
+        exit 0
+    fi
+ 
+    echo "Starting ${NAME} service... "
+ 
+    if [ ! -e "${LOGFILE}" ]; then
+        touch ${LOGFILE}
+        chown root:pgagent ${LOGFILE}
+        chmod g+rw ${LOGFILE} 
+    fi
+ 
+    $SU - pgagent -c "$PROG -s $LOGFILE hostaddr=$DBHOST dbname=$DBNAME user=$DBUSER"
+    RETVAL=$?
+    if [ $RETVAL -eq 0 ]
+    then
+        echo_success
+        touch $pidfile
+        echo `pidof pgagent` > $pidfile
+    else
+        echo_failure
+        return -1
+    fi
+}
+ 
+stop(){
+    echo $"Stopping ${NAME} service... "
+ 
+    if [ -z `pidof pgagent` ]; then
+        echo "${NAME} is not running."
+        exit 0
+    else
+        pid=`pidof pgagent`
+        kill $pid || true
+        echo_success
+        return 0
+    fi
+}
+ 
+status() {
+    if [ -z `pidof pgagent` ]; then
+        echo "${NAME} is not running."
+    else
+        echo "${NAME} is running."
+    fi
+}
+ 
+#
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    reload|restart)
+        stop
+        start
+        ;;
+    status)
+        status
+        ;;
+    *)
+        echo $"Usage: $0 {start|stop|restart|reload|status}"
+esac
+ 
+exit $?
