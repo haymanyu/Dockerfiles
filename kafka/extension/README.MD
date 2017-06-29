@@ -7,7 +7,7 @@ Get extension files:
 
       ```
       cd source 
-      docker build -t bwbuild:9.6 Dockerfile.build .
+      docker build -t bwbuild:9.6 -f Dockerfile.build .
       ```
 
   - Get bottledwater && avro extension.
